@@ -4,6 +4,10 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var mongoose = require('mongoose');
+var passport = require('passport');
+var session      = require('express-session');
+
 
 var index = require('./routes/index');
 var users = require('./routes/users');
@@ -25,11 +29,20 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', index);
 app.use('/users', users);
+// routes ======================================================================
 
 //Database Config
 var configDB = require('./config/database.js');
+mongoose.connect(configDB.url);
 
 
+// required for passport
+require('./config/passport')(passport);
+app.use(session({ secret: 'technofreakluvscoffee' })); // session secret
+app.use(passport.initialize());
+app.use(passport.session()); // persistent login sessions
+//app.use(flash()); // use connect-flash for flash messages stored in session
+require('./routes/passport.js')(app, passport);
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   var err = new Error('Not Found');
